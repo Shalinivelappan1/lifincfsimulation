@@ -99,7 +99,7 @@ def random_market_shock():
 # TITLE
 # --------------------------------------------------
 
-st.title("Corporate Finance Simulation")
+st.title("Corporate Finance Learning Lab")
 
 st.markdown("""
 This simulation allows students to manage a company through multiple rounds of:
@@ -145,20 +145,70 @@ col7.metric("WACC", f"{round(st.session_state.wacc*100,2)}%")
 # TABS
 # --------------------------------------------------
 
-investment_tab, financing_tab, working_capital_tab, results_tab = st.tabs(
+overview_tab, investment_tab, capital_structure_tab, dividend_tab, working_capital_tab, risk_tab, valuation_tab, results_tab = st.tabs(
     [
-        "Capital Budgeting",
-        "Financing",
-        "Working Capital",
-        "Results",
+        "Financial Health Overview",
+        "Capital Budgeting Learning Lab",
+        "Capital Structure Learning Lab",
+        "Dividend Policy Learning Lab",
+        "Working Capital Learning Lab",
+        "Risk Management Learning Lab",
+        "Firm Valuation Learning Lab",
+        "Strategic Reflection Dashboard"
     ]
 )
+
+# --------------------------------------------------
+# FINANCIAL HEALTH OVERVIEW
+# --------------------------------------------------
+
+with overview_tab:
+
+    st.subheader("Financial Health Overview")
+
+    overview_col1, overview_col2, overview_col3 = st.columns(3)
+
+    debt_equity_ratio = st.session_state.debt / st.session_state.equity
+
+    current_ratio_overview = (st.session_state.cash + 100) / 80
+
+    overview_col1.metric(
+        "Debt-to-Equity Ratio",
+        round(debt_equity_ratio,2)
+    )
+
+    overview_col2.metric(
+        "Current Ratio",
+        round(current_ratio_overview,2)
+    )
+
+    overview_col3.metric(
+        "WACC",
+        f"{round(st.session_state.wacc*100,2)}%"
+    )
+
+    st.info(
+        "This dashboard provides a snapshot of the firm's financial stability, liquidity, leverage, and financing cost. Students should evaluate how decisions affect long-term shareholder value."
+    )
 
 # --------------------------------------------------
 # CAPITAL BUDGETING TAB
 # --------------------------------------------------
 
 with investment_tab:
+
+    st.subheader("Concept Learning: Capital Budgeting")
+
+    st.latex(r'''NPV = \sum_{t=1}^{n}\frac{CF_t}{(1+r)^t} - C_0''')
+
+    with st.expander("Learn About NPV"):
+        st.write(
+            "Net Present Value (NPV) measures the value created by an investment project after considering the time value of money. Positive NPV indicates value creation for shareholders."
+        )
+
+        st.write(
+            "Higher discount rates reduce project attractiveness because future cash flows become less valuable in present terms."
+        )
 
     st.subheader("Investment Decisions")
 
@@ -211,6 +261,21 @@ with investment_tab:
 # --------------------------------------------------
 
 with financing_tab:
+
+    st.subheader("Concept Learning: Capital Structure")
+
+    st.latex(r'''WACC = \frac{E}{V}R_e + \frac{D}{V}R_d(1-T)''')
+
+    with st.expander("Learn About WACC"):
+        st.write(
+            "Weighted Average Cost of Capital (WACC) represents the firm's average financing cost from debt and equity sources."
+        )
+
+        st.write(
+            "Increasing debt initially reduces WACC because of the tax shield benefit. However, excessive leverage increases financial distress risk and may increase WACC later."
+        )
+
+    st.subheader("Financing Decisions")
 
     st.subheader("Financing Decisions")
 
@@ -323,10 +388,131 @@ with financing_tab:
     )
 
 # --------------------------------------------------
+# CAPITAL STRUCTURE TAB
+# --------------------------------------------------
+
+with capital_structure_tab:
+
+    st.subheader("Concept Learning: Capital Structure")
+
+    st.latex(r'''WACC = \frac{E}{V}R_e + \frac{D}{V}R_d(1-T)''')
+
+    st.latex(r'''Debt	ext{-}to	ext{-}Equity\ Ratio = \frac{Total\ Debt}{Total\ Equity}''')
+
+    with st.expander("Learn About Capital Structure"):
+        st.write(
+            "Capital structure refers to the mix of debt and equity financing used by a firm."
+        )
+
+        st.write(
+            "Moderate leverage may reduce WACC through tax shield benefits, but excessive leverage increases bankruptcy risk and financial distress costs."
+        )
+
+    st.subheader("Capital Structure Analysis")
+
+    de_ratio_learning = st.session_state.debt / st.session_state.equity
+
+    interest_coverage = st.session_state.profit / max(1, (st.session_state.debt * 0.08))
+
+    cs_col1, cs_col2 = st.columns(2)
+
+    cs_col1.metric(
+        "Debt-to-Equity Ratio",
+        round(de_ratio_learning,2)
+    )
+
+    cs_col2.metric(
+        "Interest Coverage Ratio",
+        round(interest_coverage,2)
+    )
+
+    if de_ratio_learning < 0.5:
+        st.success(
+            "The firm currently maintains a conservative financing strategy with lower financial risk."
+        )
+
+    elif de_ratio_learning < 1.5:
+        st.warning(
+            "The firm is using moderate leverage. Students should evaluate whether leverage is increasing shareholder value efficiently."
+        )
+
+    else:
+        st.error(
+            "The firm is highly leveraged and may face elevated financial distress risk."
+        )
+
+# --------------------------------------------------
+# DIVIDEND POLICY TAB
+# --------------------------------------------------
+
+with dividend_tab:
+
+    st.subheader("Concept Learning: Dividend Policy")
+
+    st.latex(r'''Dividend\ Payout\ Ratio = \frac{Dividends}{Net\ Income}''')
+
+    st.latex(r'''Dividend\ Yield = \frac{Dividend\ Per\ Share}{Stock\ Price}''')
+
+    with st.expander("Learn About Dividend Policy"):
+        st.write(
+            "Dividend policy determines how much profit is distributed to shareholders versus retained for future growth."
+        )
+
+        st.write(
+            "Firms with high growth opportunities may prefer lower dividends, while mature firms often maintain stable payouts."
+        )
+
+    dividend_strategy = st.selectbox(
+        "Select Dividend Strategy",
+        [
+            "Stable Dividend",
+            "High Dividend",
+            "Residual Dividend",
+            "No Dividend",
+            "Share Buyback"
+        ]
+    )
+
+    if dividend_strategy == "Stable Dividend":
+        st.success(
+            "Stable dividend policies generally improve investor confidence and reduce uncertainty."
+        )
+
+    elif dividend_strategy == "High Dividend":
+        st.warning(
+            "High dividends may satisfy investors in the short term but reduce internal financing flexibility."
+        )
+
+    elif dividend_strategy == "No Dividend":
+        st.info(
+            "Retaining earnings may support future growth opportunities and investment financing."
+        )
+
+    elif dividend_strategy == "Share Buyback":
+        st.success(
+            "Share buybacks may improve earnings per share and signal management confidence."
+        )
+
+# --------------------------------------------------
 # WORKING CAPITAL TAB
 # --------------------------------------------------
 
 with working_capital_tab:
+
+    st.subheader("Concept Learning: Working Capital Management")
+
+    st.latex(r'''CCC = DIO + DSO - DPO''')
+
+    with st.expander("Learn About Cash Conversion Cycle"):
+        st.write(
+            "Cash Conversion Cycle (CCC) measures the time required to convert inventory purchases into cash collected from customers."
+        )
+
+        st.write(
+            "Lower CCC generally improves liquidity efficiency, but excessively aggressive working capital policies may create operational risk."
+        )
+
+    st.subheader("Working Capital Management")
 
     st.subheader("Working Capital Management")
 
