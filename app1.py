@@ -1,61 +1,74 @@
+# =========================================================
+# INTERACTIVE CFO LEARNING PLATFORM
+# =========================================================
+
 import streamlit as st
 import pandas as pd
 import numpy as np
-import numpy_financial as npf
 import plotly.express as px
 import random
 
-# ==================================================
+# =========================================================
 # PAGE CONFIG
-# ==================================================
+# =========================================================
 
 st.set_page_config(
-    page_title="Corporate Finance Learning Lab",
+    page_title="Interactive CFO Learning Platform",
     layout="wide"
 )
 
-# ==================================================
+# =========================================================
 # SESSION STATE
-# ==================================================
+# =========================================================
 
 defaults = {
+
     "round": 1,
-    "cash": 200.0,
-    "debt": 150.0,
-    "equity": 350.0,
-    "revenue": 500.0,
-    "profit": 60.0,
-    "stock_price": 100.0,
+    "cash": 250.0,
+    "debt": 180.0,
+    "equity": 420.0,
+    "revenue": 700.0,
+    "profit": 85.0,
+    "stock_price": 120.0,
     "wacc": 0.10,
     "history": []
 }
 
 for key, value in defaults.items():
+
     if key not in st.session_state:
         st.session_state[key] = value
 
-# ==================================================
+# =========================================================
 # FUNCTIONS
-# ==================================================
+# =========================================================
 
-def generate_macro_conditions():
+def calculate_npv(
+    investment,
+    cashflow,
+    rate,
+    years=5
+):
 
-    return {
-        "GDP Growth": random.choice([3, 4, 5, 6, 7]),
-        "Inflation": random.choice([3, 4, 5, 6, 7, 8]),
-        "Interest Rate": random.choice([5, 6, 7, 8, 9]),
-        "Market Sentiment": random.choice(
-            ["Bullish", "Neutral", "Bearish"]
+    npv = -investment
+
+    for t in range(1, years + 1):
+
+        npv += (
+            cashflow /
+            ((1 + rate) ** t)
         )
-    }
+
+    return round(npv, 2)
 
 
-def calculate_wacc(debt, equity, interest_rate):
+def calculate_wacc(
+    debt,
+    equity,
+    interest_rate
+):
 
     total = debt + equity
-
-    if total == 0:
-        return 0.10
 
     rd = interest_rate / 100
     re = 0.14
@@ -63,90 +76,110 @@ def calculate_wacc(debt, equity, interest_rate):
 
     wacc = (
         (equity / total) * re
-        + (debt / total) * rd * (1 - tax)
+        +
+        (debt / total) * rd * (1 - tax)
     )
 
     return round(wacc, 4)
 
 
-def calculate_npv(
-    initial_investment,
-    annual_cashflow,
-    discount_rate,
-    years=5
-):
+def generate_economic_environment():
 
-    npv = -initial_investment
+    environments = [
 
-    for t in range(1, years + 1):
+        {
+            "title": "Economic Expansion",
+            "description":
+            """
+            Consumer demand is increasing rapidly.
+            Investors remain optimistic regarding
+            growth-oriented firms.
+            """,
+            "impact": 10
+        },
 
-        npv += (
-            annual_cashflow /
-            ((1 + discount_rate) ** t)
-        )
+        {
+            "title": "Rising Interest Rates",
+            "description":
+            """
+            Central banks increased interest rates
+            due to inflationary pressure.
+            Highly leveraged firms face increased risk.
+            """,
+            "impact": -8
+        },
 
-    return round(npv, 2)
+        {
+            "title": "Technology Disruption",
+            "description":
+            """
+            Competitors are investing aggressively
+            in AI-enabled automation.
+            Firms delaying investment risk losing market share.
+            """,
+            "impact": 12
+        },
 
-
-def random_market_shock():
-
-    events = [
-        ("Interest Rate Hike", -5),
-        ("Economic Boom", 10),
-        ("Supply Chain Disruption", -8),
-        ("Technology Breakthrough", 12),
-        ("ESG Regulation", -3),
-        ("Banking Liquidity Crisis", -10),
-        ("Stable Economy", 2),
+        {
+            "title": "Economic Slowdown",
+            "description":
+            """
+            Consumer spending weakened significantly.
+            Liquidity preservation becomes critical.
+            """,
+            "impact": -10
+        }
     ]
 
-    return random.choice(events)
+    return random.choice(environments)
 
-
-macro = generate_macro_conditions()
-
-# ==================================================
+# =========================================================
 # TITLE
-# ==================================================
+# =========================================================
 
-st.title("Corporate Finance Learning Lab")
+st.title("Interactive CFO Learning Platform")
 
 st.markdown("""
-An interactive MBA-level learning platform for:
-
-- Capital Budgeting
-- Capital Structure
-- Dividend Policy
-- Working Capital Management
-- Risk Management
-- Firm Valuation
-
-Students can experiment with financial decisions
-and observe their impact on firm value,
-liquidity, leverage, and shareholder wealth.
+An experiential corporate finance learning environment
+where students assume the role of Chief Financial Officer (CFO)
+and make strategic financial decisions under uncertainty.
 """)
 
-# ==================================================
-# SIDEBAR
-# ==================================================
+# =========================================================
+# COMPANY INTRODUCTION
+# =========================================================
 
-st.sidebar.header("Simulation Status")
+st.header("Your Role")
 
-st.sidebar.metric(
-    "Round",
-    st.session_state.round
-)
+st.write("""
+You are the CFO of a mid-sized manufacturing company
+experiencing expansion opportunities, financing pressure,
+and evolving investor expectations.
 
-st.sidebar.header("Macroeconomic Conditions")
+Your objective is to maximize:
+- shareholder wealth,
+- financial stability,
+- operational sustainability,
+- and long-term firm value.
+""")
 
-for key, value in macro.items():
-    st.sidebar.write(f"**{key}:** {value}")
+# =========================================================
+# ECONOMIC ENVIRONMENT
+# =========================================================
 
-# ==================================================
-# DASHBOARD
-# ==================================================
+environment = generate_economic_environment()
 
-st.header("Company Dashboard")
+st.header("Current Economic Environment")
+
+st.subheader(environment["title"])
+
+st.info(environment["description"])
+
+# =========================================================
+# COMPANY DASHBOARD
+# =========================================================
+
+st.header("Current Financial Position")
 
 d1, d2, d3, d4 = st.columns(4)
 
@@ -170,559 +203,366 @@ d4.metric(
     f"₹ {round(st.session_state.stock_price,2)}"
 )
 
-# ==================================================
-# TABS
-# ==================================================
+# =========================================================
+# STRATEGIC CHALLENGE
+# =========================================================
 
-(
-    overview_tab,
-    budgeting_tab,
-    capital_structure_tab,
-    dividend_tab,
-    working_capital_tab,
-    risk_tab,
-    valuation_tab,
-    results_tab
-) = st.tabs([
-    "Financial Health Overview",
-    "Capital Budgeting",
-    "Capital Structure",
-    "Dividend Policy",
-    "Working Capital",
-    "Risk Management",
-    "Firm Valuation",
-    "Strategic Reflection"
-])
+st.header("Strategic Challenge")
 
-# ==================================================
-# OVERVIEW TAB
-# ==================================================
+st.write("""
+Management proposes a major investment in AI-enabled
+manufacturing automation to improve long-term productivity
+and competitiveness.
+""")
 
-with overview_tab:
+st.warning("""
+The project may increase profitability,
+but financing decisions could significantly
+affect leverage and financial risk.
+""")
 
-    st.subheader("Financial Health Overview")
-
-    debt_equity_ratio = (
-        st.session_state.debt /
-        st.session_state.equity
-    )
-
-    current_ratio = (
-        (st.session_state.cash + 100) / 80
-    )
-
-    o1, o2, o3 = st.columns(3)
-
-    o1.metric(
-        "Debt-to-Equity Ratio",
-        round(debt_equity_ratio, 2)
-    )
-
-    o2.metric(
-        "Current Ratio",
-        round(current_ratio, 2)
-    )
-
-    o3.metric(
-        "WACC",
-        f"{round(st.session_state.wacc*100,2)}%"
-    )
-
-    st.info("""
-    This dashboard summarizes:
-    - leverage,
-    - liquidity,
-    - financing cost,
-    - and financial stability.
-    """)
-
-# ==================================================
+# =========================================================
 # CAPITAL BUDGETING
-# ==================================================
+# =========================================================
 
-with budgeting_tab:
+st.header("Capital Budgeting Decision")
 
-    st.subheader("Capital Budgeting")
+with st.expander(
+    "Learn About Capital Budgeting"
+):
 
     st.latex(
         r'''NPV = \sum_{t=1}^{n}\frac{CF_t}{(1+r)^t} - C_0'''
     )
 
-    st.latex(
-        r'''IRR : NPV = 0'''
-    )
+    st.write("""
+    Net Present Value (NPV) measures
+    shareholder value creation after considering
+    the time value of money.
+    """)
 
-    st.latex(
-        r'''PI = \frac{PV\ of\ Future\ Cash\ Flows}{Initial\ Investment}'''
-    )
+    st.write("""
+    Positive NPV projects generally increase
+    firm value.
+    """)
 
-    with st.expander("Learn About Capital Budgeting"):
-        st.write("""
-        Capital budgeting evaluates long-term investments.
-        Positive NPV projects create shareholder wealth.
-        """)
+investment_amount = st.slider(
+    "Project Investment (₹ Cr)",
+    20,
+    300,
+    80
+)
 
-    project = st.selectbox(
-        "Select Project",
-        [
-            "Automation",
-            "AI Expansion",
-            "ESG Upgrade",
-            "International Expansion"
-        ]
-    )
+expected_cashflow = st.slider(
+    "Expected Annual Cash Flow (₹ Cr)",
+    10,
+    120,
+    30
+)
 
-    scenario = st.selectbox(
-        "Scenario Analysis",
-        [
-            "Best Case",
-            "Base Case",
-            "Worst Case"
-        ]
-    )
+discount_rate = st.slider(
+    "Discount Rate (%)",
+    5,
+    20,
+    10
+)
 
-    investment_amount = st.slider(
-        "Investment Amount (₹ Cr)",
-        10,
-        200,
-        50
-    )
+npv = calculate_npv(
+    investment_amount,
+    expected_cashflow,
+    discount_rate / 100
+)
 
-    expected_cashflow = st.slider(
-        "Expected Annual Cash Flow (₹ Cr)",
-        5,
-        100,
-        20
-    )
+st.metric(
+    "Net Present Value",
+    f"₹ {npv} Cr"
+)
 
-    discount_rate = st.slider(
-        "Discount Rate (%)",
-        5,
-        20,
-        10
-    )
-
-    if scenario == "Best Case":
-        scenario_multiplier = 1.3
-
-    elif scenario == "Worst Case":
-        scenario_multiplier = 0.7
-
-    else:
-        scenario_multiplier = 1.0
-
-    adjusted_cashflow = (
-        expected_cashflow *
-        scenario_multiplier
-    )
-
-    npv = calculate_npv(
-        investment_amount,
-        adjusted_cashflow,
-        discount_rate / 100
-    )
-
-    cashflows = [-investment_amount]
-
-    for i in range(5):
-        cashflows.append(adjusted_cashflow)
-
-    irr = round(
-        npf.irr(cashflows) * 100,
-        2
-    )
-
-    payback_period = round(
-        investment_amount /
-        adjusted_cashflow,
-        2
-    )
-
-    profitability_index = round(
-        (npv + investment_amount) /
-        investment_amount,
-        2
-    )
-
-    b1, b2, b3, b4 = st.columns(4)
-
-    b1.metric("NPV", f"₹ {npv} Cr")
-    b2.metric("IRR (%)", irr)
-    b3.metric("Payback", payback_period)
-    b4.metric("PI", profitability_index)
-
-    if npv > 0:
-        st.success(
-            "The project is expected to create shareholder value."
-        )
-
-    else:
-        st.error(
-            "The project may destroy shareholder value."
-        )
-
-# ==================================================
+# =========================================================
 # CAPITAL STRUCTURE
-# ==================================================
+# =========================================================
 
-with capital_structure_tab:
+st.header("Capital Structure Decision")
 
-    st.subheader("Capital Structure")
+with st.expander(
+    "Learn About Capital Structure"
+):
 
     st.latex(
         r'''WACC = \frac{E}{V}R_e + \frac{D}{V}R_d(1-T)'''
     )
 
     st.latex(
-        r'''R_e = R_f + \beta(R_m - R_f)'''
+        r'''V_L = V_U + Tax\ Shield'''
     )
 
-    risk_free_rate = st.slider(
-        "Risk-Free Rate (%)",
-        2,
-        10,
-        5
-    )
+    st.write("""
+    Debt financing provides tax advantages,
+    but excessive leverage increases
+    financial distress risk.
+    """)
 
-    beta = st.slider(
-        "Beta",
-        0.5,
-        2.0,
-        1.0
-    )
+debt_financing = st.slider(
+    "Debt Financing (₹ Cr)",
+    0,
+    250,
+    40
+)
 
-    market_return = st.slider(
-        "Expected Market Return (%)",
-        6,
-        18,
-        12
-    )
+equity_financing = st.slider(
+    "Equity Financing (₹ Cr)",
+    0,
+    250,
+    20
+)
 
-    cost_of_equity = round(
-        risk_free_rate +
-        beta * (
-            market_return -
-            risk_free_rate
-        ),
-        2
-    )
+projected_debt = (
+    st.session_state.debt +
+    debt_financing
+)
 
-    st.metric(
-        "Cost of Equity (CAPM)",
-        f"{cost_of_equity}%"
-    )
+projected_equity = (
+    st.session_state.equity +
+    equity_financing
+)
 
-    debt_financing = st.slider(
-        "New Debt Raised (₹ Cr)",
-        0,
-        200,
-        20
-    )
+projected_wacc = calculate_wacc(
+    projected_debt,
+    projected_equity,
+    8
+)
 
-    equity_financing = st.slider(
-        "New Equity Raised (₹ Cr)",
-        0,
-        200,
-        10
-    )
+de_ratio = round(
+    projected_debt /
+    projected_equity,
+    2
+)
 
-    projected_debt = (
-        st.session_state.debt +
-        debt_financing
-    )
+c1, c2 = st.columns(2)
 
-    projected_equity = (
-        st.session_state.equity +
-        equity_financing
-    )
+c1.metric(
+    "Projected WACC",
+    f"{round(projected_wacc*100,2)}%"
+)
 
-    projected_wacc = calculate_wacc(
-        projected_debt,
-        projected_equity,
-        macro["Interest Rate"]
-    )
+c2.metric(
+    "Debt-to-Equity Ratio",
+    de_ratio
+)
 
-    de_ratio = round(
-        projected_debt /
-        projected_equity,
-        2
-    )
-
-    c1, c2 = st.columns(2)
-
-    c1.metric(
-        "Projected WACC",
-        f"{round(projected_wacc*100,2)}%"
-    )
-
-    c2.metric(
-        "Debt-to-Equity Ratio",
-        de_ratio
-    )
-
-    if de_ratio < 0.5:
-        st.success(
-            "The firm maintains conservative leverage."
-        )
-
-    elif de_ratio < 1.5:
-        st.warning(
-            "The firm uses moderate leverage."
-        )
-
-    else:
-        st.error(
-            "High leverage may increase bankruptcy risk."
-        )
-
-# ==================================================
+# =========================================================
 # DIVIDEND POLICY
-# ==================================================
+# =========================================================
 
-with dividend_tab:
+st.header("Dividend Policy Decision")
 
-    st.subheader("Dividend Policy")
+with st.expander(
+    "Learn About Dividend Policy"
+):
 
     st.latex(
         r'''Dividend\ Payout\ Ratio = \frac{Dividends}{Net\ Income}'''
     )
 
-    dividend_policy = st.selectbox(
-        "Dividend Strategy",
-        [
-            "Stable Dividend",
-            "High Dividend",
-            "Residual Dividend",
-            "No Dividend",
-            "Share Buyback"
-        ]
-    )
+    st.write("""
+    Dividend policy influences:
+    - investor expectations,
+    - internal financing capacity,
+    - and market signaling.
+    """)
 
-    dividend_payout = st.slider(
-        "Dividend Payout Ratio (%)",
-        0,
-        100,
-        30
-    )
+dividend_policy = st.selectbox(
 
-    if dividend_policy == "High Dividend":
+    "Dividend Strategy",
 
-        st.warning("""
-        High dividends improve short-term
-        investor satisfaction but reduce
-        internal financing flexibility.
-        """)
+    [
+        "Stable Dividend",
+        "High Dividend",
+        "Residual Dividend",
+        "No Dividend",
+        "Share Buyback"
+    ]
+)
 
-    elif dividend_policy == "No Dividend":
+dividend_payout = st.slider(
+    "Dividend Payout Ratio (%)",
+    0,
+    100,
+    30
+)
 
-        st.info("""
-        Retained earnings may support
-        future investment opportunities.
-        """)
+# =========================================================
+# WORKING CAPITAL MANAGEMENT
+# =========================================================
 
-    elif dividend_policy == "Share Buyback":
+st.header("Working Capital Management")
 
-        st.success("""
-        Buybacks may improve EPS
-        and signal management confidence.
-        """)
-
-# ==================================================
-# WORKING CAPITAL
-# ==================================================
-
-with working_capital_tab:
-
-    st.subheader(
-        "Working Capital Management"
-    )
+with st.expander(
+    "Learn About Working Capital"
+):
 
     st.latex(
         r'''CCC = DIO + DSO - DPO'''
     )
 
-    credit_policy = st.selectbox(
-        "Credit Policy",
-        [
-            "Strict",
-            "Moderate",
-            "Liberal"
-        ]
-    )
+    st.write("""
+    Working capital management ensures
+    operational liquidity and efficiency.
+    """)
 
-    inventory_policy = st.selectbox(
-        "Inventory Policy",
-        [
-            "Low",
-            "Medium",
-            "High"
-        ]
-    )
+credit_policy = st.selectbox(
+    "Customer Credit Policy",
+    [
+        "Strict",
+        "Moderate",
+        "Liberal"
+    ]
+)
 
-    supplier_payment = st.selectbox(
-        "Supplier Payment Strategy",
-        [
-            "Early",
-            "Standard",
-            "Delayed"
-        ]
-    )
+inventory_policy = st.selectbox(
+    "Inventory Policy",
+    [
+        "Low",
+        "Medium",
+        "High"
+    ]
+)
 
-    receivable_days = {
-        "Strict": 30,
-        "Moderate": 60,
-        "Liberal": 90
-    }[credit_policy]
+supplier_payment = st.selectbox(
+    "Supplier Payment Policy",
+    [
+        "Early",
+        "Standard",
+        "Delayed"
+    ]
+)
 
-    inventory_days = {
-        "Low": 30,
-        "Medium": 60,
-        "High": 90
-    }[inventory_policy]
-
-    payable_days = {
-        "Early": 20,
-        "Standard": 45,
-        "Delayed": 75
-    }[supplier_payment]
-
-    ccc = (
-        inventory_days +
-        receivable_days -
-        payable_days
-    )
-
-    w1, w2 = st.columns(2)
-
-    w1.metric(
-        "Cash Conversion Cycle",
-        f"{ccc} Days"
-    )
-
-    w2.metric(
-        "Current Ratio",
-        round(current_ratio, 2)
-    )
-
-    if ccc > 90:
-        st.warning(
-            "High CCC may create liquidity stress."
-        )
-
-# ==================================================
+# =========================================================
 # RISK MANAGEMENT
-# ==================================================
+# =========================================================
 
-with risk_tab:
+st.header("Risk Management")
 
-    st.subheader("Risk Management")
+with st.expander(
+    "Learn About Risk Management"
+):
 
-    hedge_policy = st.selectbox(
-        "Hedging Strategy",
-        [
-            "No Hedging",
-            "Partial Hedging",
-            "Full Hedging"
-        ]
-    )
+    st.write("""
+    Firms face:
+    - interest rate risk,
+    - liquidity risk,
+    - foreign exchange risk,
+    - and operational uncertainty.
+    """)
 
-    current_risk = random.choice([
-        "Interest Rate Risk",
-        "FX Risk",
-        "Commodity Risk",
-        "Liquidity Risk"
-    ])
+hedging_strategy = st.selectbox(
 
-    st.metric(
-        "Current Major Risk",
-        current_risk
-    )
+    "Hedging Strategy",
 
-# ==================================================
-# FIRM VALUATION
-# ==================================================
+    [
+        "No Hedging",
+        "Partial Hedging",
+        "Full Hedging"
+    ]
+)
 
-with valuation_tab:
+# =========================================================
+# RUN DECISION ROUND
+# =========================================================
 
-    st.subheader("Firm Valuation")
+st.header("Execute Strategic Decisions")
 
-    st.latex(
-        r'''Firm\ Value = \sum_{t=1}^{n}\frac{FCFF_t}{(1+WACC)^t}'''
-    )
+if st.button("Run CFO Decision Round"):
 
-    estimated_value = round(
-        st.session_state.profit /
-        st.session_state.wacc,
-        2
-    )
+    # -----------------------------------------------------
+    # REVENUE IMPACT
+    # -----------------------------------------------------
 
-    st.metric(
-        "Estimated Firm Value",
-        f"₹ {estimated_value} Cr"
-    )
-
-# ==================================================
-# RUN SIMULATION
-# ==================================================
-
-st.header("Run Simulation")
-
-if st.button("Run Simulation Round"):
-
-    shock_name, shock_effect = (
-        random_market_shock()
-    )
-
-    revenue_growth = np.random.uniform(
-        0.02,
+    growth = np.random.uniform(
+        0.03,
         0.15
     )
 
-    if credit_policy == "Liberal":
-        revenue_growth += 0.03
-
     updated_revenue = (
         st.session_state.revenue *
-        (1 + revenue_growth)
+        (1 + growth)
     )
+
+    # -----------------------------------------------------
+    # PROFIT IMPACT
+    # -----------------------------------------------------
 
     updated_profit = (
         updated_revenue * 0.12
-    ) + shock_effect
+    ) + environment["impact"]
+
+    # -----------------------------------------------------
+    # DIVIDEND IMPACT
+    # -----------------------------------------------------
 
     dividend_amount = (
         updated_profit *
         (dividend_payout / 100)
     )
 
+    # -----------------------------------------------------
+    # CASH IMPACT
+    # -----------------------------------------------------
+
     updated_cash = (
+
         st.session_state.cash
-        + updated_profit
-        - investment_amount
-        + debt_financing
-        + equity_financing
-        - dividend_amount
+        +
+        updated_profit
+        -
+        investment_amount
+        +
+        debt_financing
+        +
+        equity_financing
+        -
+        dividend_amount
     )
+
+    # -----------------------------------------------------
+    # STOCK PRICE
+    # -----------------------------------------------------
 
     updated_stock_price = max(
+
         10,
-        st.session_state.stock_price +
-        (updated_profit / 10)
+
+        st.session_state.stock_price
+        +
+        (updated_profit / 12)
     )
 
-    # UPDATE STATE
+    # -----------------------------------------------------
+    # UPDATE SESSION
+    # -----------------------------------------------------
+
+    st.session_state.cash = updated_cash
 
     st.session_state.revenue = updated_revenue
+
     st.session_state.profit = updated_profit
-    st.session_state.cash = updated_cash
-    st.session_state.stock_price = updated_stock_price
+
+    st.session_state.stock_price = (
+        updated_stock_price
+    )
+
     st.session_state.debt = projected_debt
+
     st.session_state.equity = projected_equity
+
     st.session_state.wacc = projected_wacc
 
-    # HISTORY
+    # -----------------------------------------------------
+    # SAVE HISTORY
+    # -----------------------------------------------------
 
     st.session_state.history.append({
+
         "Round": st.session_state.round,
         "Revenue": updated_revenue,
         "Profit": updated_profit,
@@ -732,27 +572,101 @@ if st.button("Run Simulation Round"):
 
     st.session_state.round += 1
 
-    st.success(
-        f"Simulation Completed: {shock_name}"
+    # =====================================================
+    # EDUCATIONAL FEEDBACK
+    # =====================================================
+
+    st.header("Board and Market Reactions")
+
+    if npv > 0:
+
+        st.success("""
+        Board members approved the investment strategy
+        because the project is expected to create
+        long-term shareholder value.
+        """)
+
+    else:
+
+        st.error("""
+        Investors expressed concern regarding
+        the project's weak value creation potential.
+        """)
+
+    if de_ratio > 1.5:
+
+        st.warning("""
+        Credit analysts warned that excessive leverage
+        may increase financial distress risk despite
+        tax shield benefits.
+        """)
+
+    elif de_ratio < 0.5:
+
+        st.info("""
+        The firm maintains conservative leverage,
+        but may be underutilizing debt tax advantages.
+        """)
+
+    if updated_cash < 40:
+
+        st.error("""
+        Liquidity stress is emerging.
+        Management may need to reconsider
+        dividend payouts or financing strategy.
+        """)
+
+    if hedging_strategy == "No Hedging":
+
+        st.warning("""
+        The company remains fully exposed
+        to market volatility.
+        """)
+
+    # =====================================================
+    # REFLECTION QUESTIONS
+    # =====================================================
+
+    st.header("Strategic Reflection")
+
+    st.text_area(
+        "Why did you choose your financing strategy?",
+        height=120
     )
 
-# ==================================================
+    st.text_area(
+        "Did your investment decision maximize shareholder value?",
+        height=120
+    )
+
+    st.text_area(
+        "How would you modify your strategy under worsening economic conditions?",
+        height=120
+    )
+
+# =========================================================
 # FINANCIAL STATEMENTS
-# ==================================================
+# =========================================================
 
 st.header("Simplified Financial Statements")
 
 income_statement = pd.DataFrame({
+
     "Item": [
         "Revenue",
         "Operating Profit",
         "Interest Expense",
         "Net Profit"
     ],
+
     "Amount": [
+
         round(st.session_state.revenue,2),
+
         round(st.session_state.profit,2),
+
         round(st.session_state.debt * 0.08,2),
+
         round(
             st.session_state.profit -
             (st.session_state.debt * 0.08),
@@ -762,14 +676,19 @@ income_statement = pd.DataFrame({
 })
 
 balance_sheet = pd.DataFrame({
+
     "Item": [
         "Cash",
         "Debt",
         "Equity"
     ],
+
     "Amount": [
+
         round(st.session_state.cash,2),
+
         round(st.session_state.debt,2),
+
         round(st.session_state.equity,2)
     ]
 })
@@ -777,84 +696,70 @@ balance_sheet = pd.DataFrame({
 f1, f2 = st.columns(2)
 
 with f1:
+
     st.subheader("Income Statement")
-    st.dataframe(income_statement)
 
-with f2:
-    st.subheader("Balance Sheet")
-    st.dataframe(balance_sheet)
-
-# ==================================================
-# REFLECTION QUESTIONS
-# ==================================================
-
-st.header("Strategic Reflection Questions")
-
-st.text_area(
-    "Explain how your investment decision impacts shareholder wealth.",
-    height=120
-)
-
-st.text_area(
-    "Discuss whether your financing strategy balances growth and financial risk effectively.",
-    height=120
-)
-
-st.text_area(
-    "How did working capital decisions affect liquidity and operational efficiency?",
-    height=120
-)
-
-# ==================================================
-# RESULTS
-# ==================================================
-
-with results_tab:
-
-    st.subheader(
-        "Strategic Reflection Dashboard"
+    st.dataframe(
+        income_statement,
+        use_container_width=True
     )
 
-    if len(st.session_state.history) > 0:
+with f2:
 
-        df = pd.DataFrame(
-            st.session_state.history
-        )
+    st.subheader("Balance Sheet")
 
-        st.dataframe(df)
+    st.dataframe(
+        balance_sheet,
+        use_container_width=True
+    )
 
-        fig1 = px.line(
-            df,
-            x="Round",
-            y="Revenue",
-            title="Revenue Trend"
-        )
+# =========================================================
+# PERFORMANCE VISUALIZATION
+# =========================================================
 
-        st.plotly_chart(
-            fig1,
-            use_container_width=True
-        )
+st.header("Firm Performance Dashboard")
 
-        fig2 = px.line(
-            df,
-            x="Round",
-            y="Stock Price",
-            title="Stock Price Trend"
-        )
+if len(st.session_state.history) > 0:
 
-        st.plotly_chart(
-            fig2,
-            use_container_width=True
-        )
+    df = pd.DataFrame(
+        st.session_state.history
+    )
 
-    else:
-        st.info(
-            "No simulation rounds completed yet."
-        )
+    fig1 = px.line(
 
-# ==================================================
+        df,
+        x="Round",
+        y="Revenue",
+        title="Revenue Trend"
+    )
+
+    st.plotly_chart(
+        fig1,
+        use_container_width=True
+    )
+
+    fig2 = px.line(
+
+        df,
+        x="Round",
+        y="Stock Price",
+        title="Stock Price Trend"
+    )
+
+    st.plotly_chart(
+        fig2,
+        use_container_width=True
+    )
+
+else:
+
+    st.info(
+        "No decision rounds completed yet."
+    )
+
+# =========================================================
 # RESET BUTTON
-# ==================================================
+# =========================================================
 
 st.sidebar.header("Simulation Control")
 
@@ -865,6 +770,7 @@ if st.sidebar.button(
     for key in list(
         st.session_state.keys()
     ):
+
         del st.session_state[key]
 
     st.rerun()
